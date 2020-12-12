@@ -36,6 +36,7 @@ function ObsidianWrapper(props) {
     globalDestructure = true,
   } = props.client || {};
   const [cache, setCache] = React.useState({});
+  console.log("First time cache is created: ", cache);
 
   // Primary function, provides access to fetching and caching capabilities
   async function gather(query, options = {}) {
@@ -150,13 +151,15 @@ function ObsidianWrapper(props) {
       if (destructure) {
         const obsidianSchema = window.__INITIAL_STATE__.obsidianSchema;
 
+        console.log("Cache before results normalized: ", cache);
         const deepCache = Object.assign({}, cache);
 
         // Updates all of the normalized results in our cache
         return new Promise((resolve, reject) => {
           resolve(
-            normalizeResult(query, resp, obsidianSchema, deepCache).then(
+            normalizeResult(query, resp, obsidianSchema, deepCache).then( // Add console log to return value
               (updatedCache) => {
+                console.log('Normalize Result return Value: ', updatedCache);
                 for (let key in updatedCache) {
                   for (let hash in updatedCache[key]) {
                     updateCache(hash, updatedCache[key][hash], sessionStore);

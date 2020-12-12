@@ -3,7 +3,10 @@ import { checkAndInsert } from './dbOps.js';
 
 // Normalizes responses from GraphQL queries //
 export default async function normalizeResult(query, result, obsidianSchema, cache) {
-
+  console.log('query: ', query);
+  console.log('result: ', result)
+  console.log('obsidianSchema: ', obsidianSchema)
+  console.log('cache: ', cache)
   if (!result.data) return;
 
   const { returnTypes, obsidianTypeSchema } = obsidianSchema;
@@ -15,9 +18,10 @@ export default async function normalizeResult(query, result, obsidianSchema, cac
   // Iterates through sub-queries to create hash-value pairs in Redis //
   for (let i = 0; i < specificQueryArray.length; i++) {
     const hashedQuery = await hashSpecificQuery(specificQueryArray[i], result.data[specificQueryArray[i]], returnTypes, query, obsidianTypeSchema, cache);
+    console.log('hashedQuery: ', hashedQuery)
     promiseArr.push(checkAndInsert(hashedQuery.hash, hashedQuery.value, cache));
   }
-
+  console.log("Promise: ", (promiseArr))
   return Promise.all(promiseArr);
 }
 
@@ -33,6 +37,7 @@ async function hashSpecificQuery(queryType, fields, returnTypes, query, obsidian
 
   // Create the hash of the specific query //
   const hash = specificQueryParser(startIdx, query).output;
+  console.log('hash :', hash);
 
   // Create array of hashes of all key:value pairs (will check and store in cache inside) //
   const objOfHashes = await hashAndStoreFields(queryType, fields, returnTypes, obsidianTypeSchema, cache);
@@ -64,7 +69,7 @@ async function hashAndStoreFields(queryType, fields, returnTypes, obsidianTypeSc
 async function hashAndStoreFieldsOfObject(typeSchemaName, fields, obsidianTypeSchema, queryType, returnTypes, cache) {
   const properties = Object.keys(fields);
   const id = (fields.id || fields.ID || fields._id || fields._ID || fields.Id || fields._Id);
-
+  console.log("Fields from hash and StoreFields of Object: ", fields)
   // Loop through properties to create object with all hashes //
   const hashes = {};
 
@@ -112,6 +117,7 @@ async function hashAndStoreFieldsOfObject(typeSchemaName, fields, obsidianTypeSc
           value = fields[property];
         }
         // Store hash key and value in Redis database //
+        console.log("About to cache");
         await checkAndInsert(hash, value, cache);
 
         // Add hash to hash object //
@@ -120,7 +126,7 @@ async function hashAndStoreFieldsOfObject(typeSchemaName, fields, obsidianTypeSc
     }
     await oldReduce(properties[i]);
   }
-
+  console.log("Output of hashAndStoreFieldsOfObject: ", hashes);
   return hashes;
 }
 

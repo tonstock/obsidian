@@ -17,6 +17,8 @@ async function checkAndInsert(hash, value, cache, expiration = 20) {
   if (browser) {
     ifCached = cache[hash];
     if (!ifCached) {
+      console.log("Hash: ", hash);
+      console.log("Value: ", value);
       cache[hash] = value;
     }
     return cache;
